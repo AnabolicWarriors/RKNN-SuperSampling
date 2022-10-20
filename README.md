@@ -29,8 +29,6 @@ $ ./build.sh
 # 누가 윈도우 씀 ㅎ?
 $ git clone https://github.com/AnabolicWarriors/RKNN-SuperSampling
 $ cd RKNN-SuperSampling
-$ chmod +x ./bootstrap.sh
-$ chmod +x ./build.sh
 $ ./bootstrap.bat
 $ ./build.bat
 ```
