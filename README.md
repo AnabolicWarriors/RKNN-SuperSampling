@@ -14,13 +14,25 @@ RK3399Pro 에서 NPU를 사용하고 최적화 하기 위한 프로젝트.
 ## MacOS / Ubuntu 기준 빌드 방법
 
 ```sh
-# 아직 미 지원기능, 누가 윈도우 씀 ㅎ?
+# 누가 윈도우 씀 ㅎ?
 $ git clone https://github.com/AnabolicWarriors/RKNN-SuperSampling
 $ cd RKNN-SuperSampling
 $ chmod +x ./bootstrap.sh
 $ chmod +x ./build.sh
 $ ./bootstrap.sh
 $ ./build.sh
+```
+
+## Windows 기준 빌드 방법
+
+```sh
+# 누가 윈도우 씀 ㅎ?
+$ git clone https://github.com/AnabolicWarriors/RKNN-SuperSampling
+$ cd RKNN-SuperSampling
+$ chmod +x ./bootstrap.sh
+$ chmod +x ./build.sh
+$ ./bootstrap.bat
+$ ./build.bat
 ```
 
 ## 실행 방법
