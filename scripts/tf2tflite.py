@@ -3,6 +3,7 @@ import argparse
 import tensorflow as tf
 
 # 메모리 성능이 부족하여, PC에서 변환 후 넣어주셍 ><
+# tf2rknn 프로그램 작성함. 이때, tflite 변환에 메모리 공간 부족으로 인해 파일 분리를 수행함.
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('tensorflow to tflite')
@@ -19,10 +20,10 @@ if __name__ == '__main__':
     #     classes=1000,
     # )
     
-    model = tf.keras.models.load_model()
+    model = tf.keras.models.load_model(args.modelFile)
     model.summary()
     
-    converter = tf.lite.TFLiteConverter.from_keras_model(args.modelFile)
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
     tflite_model = converter.convert()
     # Save the model.
     with open(args.outputFile, 'wb') as f:

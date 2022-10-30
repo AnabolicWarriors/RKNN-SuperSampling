@@ -21,6 +21,7 @@
 #include <fstream>
 #include <iostream>
 #include <sys/time.h>
+#include <chrono>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -30,6 +31,7 @@
 #include "rknn_api.h"
 
 using namespace std;
+using namespace std::chrono;
 
 /*-------------------------------------------
                   Functions
@@ -226,69 +228,80 @@ int main(int argc, char **argv)
         printRKNNTensor(&(output_attrs[i]));
     }
 
-    // Load image
-    unsigned char *input_data = NULL;
-    input_data = load_image(img_path, &input_attrs[0]);
-    if (!input_data)
-    {
-        return -1;
-    }
-
-    // Set Input Data
-    rknn_input inputs[1];
-    memset(inputs, 0, sizeof(inputs));
-    inputs[0].index = 0;
-    inputs[0].type = RKNN_TENSOR_UINT8;
-    inputs[0].size = input_attrs[0].size;
-    inputs[0].fmt = RKNN_TENSOR_NHWC;
-    inputs[0].buf = input_data;
-
-    ret = rknn_inputs_set(ctx, io_num.n_input, inputs);
-    if (ret < 0)
-    {
-        printf("rknn_input_set fail! ret=%d\n", ret);
-        return -1;
-    }
-
-    // Run
-    printf("rknn_run\n");
-    ret = rknn_run(ctx, nullptr);
-    if (ret < 0)
-    {
-        printf("rknn_run fail! ret=%d\n", ret);
-        return -1;
-    }
-
-    // Get Output
-    rknn_output outputs[1];
-    memset(outputs, 0, sizeof(outputs));
-    outputs[0].want_float = 1;
-    ret = rknn_outputs_get(ctx, 1, outputs, NULL);
-    if (ret < 0)
-    {
-        printf("rknn_outputs_get fail! ret=%d\n", ret);
-        return -1;
-    }
-
-    // Post Process
-    for (int i = 0; i < io_num.n_output; i++)
-    {
-        uint32_t MaxClass[5];
-        float fMaxProb[5];
-        float *buffer = (float *)outputs[i].buf;
-        uint32_t sz = outputs[i].size / 4;
-
-        rknn_GetTop(buffer, fMaxProb, MaxClass, sz, 5);
-
-        printf(" --- Top5 ---\n");
-        for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 1000; i++) { 
+        auto imr = high_resolution_clock::now();
+        // Load image
+        unsigned char *input_data = NULL;
+        input_data = load_image(img_path, &input_attrs[0]);
+        if (!input_data)
         {
-            printf("%3d: %8.6f\n", MaxClass[i], fMaxProb[i]);
+            return -1;
         }
-    }
+        
+        auto compute = high_resolution_clock::now();
+        // Set Input Data
+        rknn_input inputs[1];
+        memset(inputs, 0, sizeof(inputs));
+        inputs[0].index = 0;
+        inputs[0].type = RKNN_TENSOR_UINT8;
+        inputs[0].size = input_attrs[0].size;
+        inputs[0].fmt = RKNN_TENSOR_NHWC;
+        inputs[0].buf = input_data;
+        ret = rknn_inputs_set(ctx, io_num.n_input, inputs);
+        if (ret < 0)
+        {
+            printf("rknn_input_set fail! ret=%d\n", ret);
+            return -1;
+        }
 
-    // Release rknn_outputs
-    rknn_outputs_release(ctx, 1, outputs);
+        // Run
+        // printf("rknn_run\n");
+        ret = rknn_run(ctx, nullptr);
+        if (ret < 0)
+        {
+            printf("rknn_run fail! ret=%d\n", ret);
+            return -1;
+        }
+
+        // Get Output
+        rknn_output outputs[1];
+        memset(outputs, 0, sizeof(outputs));
+        outputs[0].want_float = 1;
+        ret = rknn_outputs_get(ctx, 1, outputs, NULL);
+        if (ret < 0)
+        {
+            printf("rknn_outputs_get fail! ret=%d\n", ret);
+            return -1;
+        }
+        
+        // Post Process
+        // for (int i = 0; i < io_num.n_output; i++)
+        // {
+        //     uint32_t MaxClass[5];
+        //     float fMaxProb[5];
+        //     float *buffer = (float *)outputs[i].buf;
+        //     uint32_t sz = outputs[i].size / 4;
+
+        //     rknn_GetTop(buffer, fMaxProb, MaxClass, sz, 5);
+
+        //     printf(" --- Top5 ---\n");
+        //     for (int i = 0; i < 5; i++)
+        //     {
+        //         printf("%3d: %8.6f\n", MaxClass[i], fMaxProb[i]);
+        //     }
+        // }
+        // Release rknn_outputs
+        rknn_outputs_release(ctx, 1, outputs);
+        cout << (high_resolution_clock::now() - compute).count() / 1000.0 / 1000.0 << '\n';
+
+        if (input_data)
+        {
+            stbi_image_free(input_data);
+        }
+        cout << (high_resolution_clock::now() - imr).count() / 1000.0 / 1000.0 << '\n';
+    }
+    
+    
 
     // Release
     if (ctx >= 0)
@@ -298,11 +311,6 @@ int main(int argc, char **argv)
     if (model)
     {
         free(model);
-    }
-
-    if (input_data)
-    {
-        stbi_image_free(input_data);
     }
 
     return 0;
